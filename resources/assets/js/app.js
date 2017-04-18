@@ -44,7 +44,8 @@ var app = new Vue({
             flash: {
                 active: false,
                 progressBar: false,
-                message: ''
+                message: '',
+                errors: null
             },
             form: {
                 date: {
@@ -68,28 +69,25 @@ var app = new Vue({
             var box = this.box;
             var getResult = this.getResult;
 
+            // clean up errors
+            box.flash.errors = null;
+
             // send request
             $.ajax("/search", {
                 data: this.form,
-                method: 'GET',
+                method: 'POST',
                 beforeSend: function () {
-                    console.log('beforeSend');
                     box.flash.active = true;
                     box.flash.progressBar = true;
                     box.flash.message = 'Осуществляется поиск...'
                 },
                 success: function (response) {
-                    console.log('Search response: ');
-                    console.log(response);
                     box.flash.message = 'Поиск выполнен, ожидание результатов...';
                     box.requestId = response.RequestId;
 
                     getResult(box, getResult);
                 },
-                error: function (xhr, status, error) {
-                    box.flash.message = 'Произошла ошибка! Выполните поиск ещё раз.';
-                    box.flash.progressBar = false;
-                }
+                error: ajaxRequestError
             });
         },
         getResult: function(box, getResult) {
@@ -100,32 +98,27 @@ var app = new Vue({
                 },
                 method: "POST",
                 success: function(response) {
-                    console.log('Results request: ');
-                    console.log(response);
-
                     if (response.hasOwnProperty('Errors')) {
-                        console.log('Search in process');
+                        if (response.Errors.hasOwnProperty('Code')
+                            && response.Errors.Code == 202
+                            && response.Errors.hasOwnProperty('Message')) {
+
+                            box.flash.message = response.Errors.Message;
+                            box.flash.progressBar = false;
+                            return;
+                        }
+
                         getResult(box, getResult);
                     }
 
                     if (response.hasOwnProperty('FareDisplayInfos')) {
-                        console.log('FareDisplayInfos found');
-
                         box.results = response.FareDisplayInfos;
-
-                        console.log(box.results);
-
                         box.flash.active = false;
                         box.flash.progressBar = false;
                         box.flash.message = '';
                     }
                 },
-                error: function(xhr, status, error) {
-                    console.log(xhr, status, error);
-                    console.log('ERROR in results request!');
-                    box.flash.message = 'Произошла ошибка!';
-                    box.flash.progressBar = false;
-                }
+                error: ajaxRequestError
             });
         },
         dateSelected: function() {
@@ -137,3 +130,12 @@ var app = new Vue({
         }
     }
 });
+
+var ajaxRequestError = function(xhr, status, error) {
+    app.box.flash.message = 'Произошла ошибка! Выполните поиск ещё раз.';
+    app.box.flash.progressBar = false;
+
+    if (xhr.status == 422 && xhr.hasOwnProperty('responseJSON')) {
+        app.box.flash.errors = xhr.responseJSON;
+    }
+};

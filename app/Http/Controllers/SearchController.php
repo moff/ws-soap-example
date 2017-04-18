@@ -10,7 +10,7 @@ use App\Soap\Type\TravelPreferencesType;
 use App\Soap\WSSoapWrapper;
 use Carbon\Carbon;
 use App\Soap\Request\DoAirFareRQ;
-
+use Illuminate\Http\Request;
 use App\Soap\WSSoapClient;
 
 class SearchController extends Controller
@@ -35,7 +35,15 @@ class SearchController extends Controller
         return view('search.index');
     }
 
-    public function search() {
+    public function search(Request $request) {
+
+        $this->validate($request, [
+            'OriginLocation' => 'required',
+            'DestinationLocation' => 'required',
+            'PassengerQuantity' => 'required|integer',
+            'DepartureDate' => 'required|date_format:Y-m-d H:i:s',
+        ]);
+
         $this->soapWrapper->add('Flights', function ($service) {
             $service
                 ->wsdl(env('WSDL_URL'))
@@ -44,12 +52,12 @@ class SearchController extends Controller
                 ->options(['exceptions' => 0, 'soap_version'=> SOAP_1_2,]);
         });
 
-        $date = Carbon::today()->toDateTimeString();
-        $PassengerQuantityType = new PassengerQuantityType('ADT', 1);
+        $date = request('DepartureDate');
+        $PassengerQuantityType = new PassengerQuantityType('ADT', request('PassengerQuantity'));
 
         $airFareRequest = new DoAirFareRQ(
             new SecurityType(env('WS_LOGIN'), env('WS_PASS'), env('WS_HASH')),
-            new OriginDestinationInformationType($date, 'MOW', 'LED'),
+            new OriginDestinationInformationType($date, request('OriginLocation'), request('DestinationLocation')),
             new TravelerInfoSummaryType($PassengerQuantityType),
             new TravelPreferencesType(null, null, null, null)
         );

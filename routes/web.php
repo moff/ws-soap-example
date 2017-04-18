@@ -12,7 +12,6 @@
 */
 
 Route::get('/', 'SearchController@index')->name('main');
-Route::get('/search', 'SearchController@search');
+Route::post('/search', 'SearchController@search');
 Route::get('/ping', 'SearchController@ping');
-Route::get('/info', 'SearchController@info');
 Route::post('/result', 'SearchController@result')->name('result');

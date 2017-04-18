@@ -31,7 +31,14 @@
             </div>
         </div>
         <div class="col-sm-8">
-            <div v-if="box.flash.active" class="alert alert-info" role="alert">{{ box.flash.message }}</div>
+            <div v-if="box.flash.active" class="alert alert-info" role="alert">
+                {{ box.flash.message }}
+            </div>
+            <div v-if="box.flash.errors" class="alert alert-danger" role="alert">
+                <div v-for="errors in box.flash.errors">
+                    <p v-for="error in errors">{{ error }}</p>
+                </div>
+            </div>
             <div v-if="box.flash.progressBar" class="progress">
                 <div class="progress-bar progress-bar-striped active" role="progressbar" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100" style="width: 100%">
                 </div>
