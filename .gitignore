@@ -6,6 +6,7 @@
 /pubcic/fonts
 /storage/*.key
 /vendor
+/certs
 /.idea
 Homestead.json
 Homestead.yaml
