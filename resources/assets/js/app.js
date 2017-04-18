@@ -12,10 +12,31 @@ require('./bootstrap');
  * the page. Then, you may begin adding components to this application
  * or customize the JavaScript scaffolding to fit your unique needs.
  */
+(function() {
+
+    function pad(number) {
+        if (number < 10) {
+            return '0' + number;
+        }
+        return number;
+    }
+
+    Date.prototype.toISOStringDayStart = function() {
+        return this.getFullYear() +
+            '-' + pad(this.getMonth() + 1) +
+            '-' + pad(this.getDate()) +
+            ' ' + '00:00:00';
+    };
+
+}());
+
+
+var Datepicker = require('vuejs-datepicker');
 
 var app = new Vue({
     el: '#app',
     template: '#vue-app-template',
+    components: { Datepicker },
     data: {
         box: {
             requestId: null,
@@ -24,13 +45,21 @@ var app = new Vue({
                 active: false,
                 progressBar: false,
                 message: ''
+            },
+            form: {
+                date: {
+                    value: new Date(),
+                    disabled: {
+                        to: new Date()
+                    }
+                }
             }
         },
         form: {
-            OriginLocation: null,
-            DestinationLocation: null,
-            PassengerQuantity: null,
-            DepartureDate: null,
+            OriginLocation: 'MOW',
+            DestinationLocation: 'LED',
+            PassengerQuantity: 1,
+            DepartureDate: new Date().toISOStringDayStart(),
             _token: Laravel.csrfToken
         }
     },
@@ -38,7 +67,6 @@ var app = new Vue({
         search: function() {
             var box = this.box;
             var getResult = this.getResult;
-            console.log('search button clicked!');
 
             // send request
             $.ajax("/search", {
@@ -99,6 +127,13 @@ var app = new Vue({
                     box.flash.progressBar = false;
                 }
             });
+        },
+        dateSelected: function() {
+            // setTimeout due to laggy date change
+            setTimeout(this.changeDate, 100);
+        },
+        changeDate: function() {
+            this.form.DepartureDate = this.box.form.date.value.toISOStringDayStart();
         }
     }
 });

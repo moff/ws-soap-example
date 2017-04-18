@@ -21,7 +21,7 @@
     </head>
     <body>
         <div class="container">
-            <h1>SOAP Test app</h1>
+            <h1>WS SOAP example app</h1>
             <hr>
             <div id="app"></div>
             @include('vue-templates/app')

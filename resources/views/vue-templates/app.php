@@ -4,6 +4,15 @@
             <div class="block-wrapper">
                 <form>
                     <div class="form-group">
+                        <label for="DepartureDate">Дата вылета</label>
+                        <datepicker v-model="box.form.date.value"
+                                    :disabled="box.form.date.disabled"
+                                    language="ru"
+                                    v-on:selected="dateSelected"
+                                    input-class="form-control"
+                                    name="DepartureDate"></datepicker>
+                    </div>
+                    <div class="form-group">
                         <label for="OriginLocation">Город вылета</label>
                         <input v-model="form.OriginLocation"  type="text" class="form-control" id="OriginLocation" placeholder="Город вылета">
                     </div>
@@ -13,11 +22,7 @@
                     </div>
                     <div class="form-group">
                         <label for="PassengerQuantity">Количество пассажиров</label>
-                        <input v-model="form.PassengerQuantity"  type="number" class="form-control" id="PassengerQuantity" placeholder="Количество пассажиров" value="1" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label for="DepartureDate">Дата вылета</label>
-                        <input v-model="form.DepartureDate" type="text" class="form-control" id="DepartureDate" placeholder="Дата вылета">
+                        <input v-model="form.PassengerQuantity"  type="number" class="form-control" id="PassengerQuantity" placeholder="Количество пассажиров" min="1">
                     </div>
                     <div class="text-right">
                         <button v-on:click="search" type="button" class="btn btn-success">Найти рейсы</button>
