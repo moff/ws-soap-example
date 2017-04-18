@@ -13,8 +13,92 @@ require('./bootstrap');
  * or customize the JavaScript scaffolding to fit your unique needs.
  */
 
-Vue.component('example', require('./components/Example.vue'));
+var app = new Vue({
+    el: '#app',
+    template: '#vue-app-template',
+    data: {
+        box: {
+            requestId: null,
+            results: [],
+            flash: {
+                active: false,
+                progressBar: false,
+                message: ''
+            }
+        },
+        form: {
+            OriginLocation: null,
+            DestinationLocation: null,
+            PassengerQuantity: null,
+            DepartureDate: null,
+            _token: Laravel.csrfToken
+        }
+    },
+    methods: {
+        search: function() {
+            var box = this.box;
+            var getResult = this.getResult;
+            console.log('search button clicked!');
 
-const app = new Vue({
-    el: '#app'
+            // send request
+            $.ajax("/search", {
+                data: this.form,
+                method: 'GET',
+                beforeSend: function () {
+                    console.log('beforeSend');
+                    box.flash.active = true;
+                    box.flash.progressBar = true;
+                    box.flash.message = 'Осуществляется поиск...'
+                },
+                success: function (response) {
+                    console.log('Search response: ');
+                    console.log(response);
+                    box.flash.message = 'Поиск выполнен, ожидание результатов...';
+                    box.requestId = response.RequestId;
+
+                    getResult(box, getResult);
+                },
+                error: function (xhr, status, error) {
+                    box.flash.message = 'Произошла ошибка! Выполните поиск ещё раз.';
+                    box.flash.progressBar = false;
+                }
+            });
+        },
+        getResult: function(box, getResult) {
+            $.ajax("/result", {
+                data: {
+                    RequestId: box.requestId,
+                    _token: Laravel.csrfToken
+                },
+                method: "POST",
+                success: function(response) {
+                    console.log('Results request: ');
+                    console.log(response);
+
+                    if (response.hasOwnProperty('Errors')) {
+                        console.log('Search in process');
+                        getResult(box, getResult);
+                    }
+
+                    if (response.hasOwnProperty('FareDisplayInfos')) {
+                        console.log('FareDisplayInfos found');
+
+                        box.results = response.FareDisplayInfos;
+
+                        console.log(box.results);
+
+                        box.flash.active = false;
+                        box.flash.progressBar = false;
+                        box.flash.message = '';
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.log(xhr, status, error);
+                    console.log('ERROR in results request!');
+                    box.flash.message = 'Произошла ошибка!';
+                    box.flash.progressBar = false;
+                }
+            });
+        }
+    }
 });
